@@ -118,7 +118,7 @@ export default function NotificationForm({ onClose, onSuccess }: NotificationFor
     console.log("[handleSubmit] Notification data:", notificationData);
 
     try {
-      const response = await requestNotification(notificationData);
+      await requestNotification(notificationData);
       setSuccess("Notification request sent successfully!");
       setTimeout(() => {
         onSuccess();

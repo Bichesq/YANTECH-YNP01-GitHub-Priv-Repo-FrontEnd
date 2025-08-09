@@ -1,59 +1,70 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http:localhost:8001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
+  request: Request,
+  context: { params: Record<string, string | string[]> }
 ) {
-  return proxyRequest(request, params.path, 'GET');
+  const pathParam = context.params.path;
+  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
+  return proxyRequest(request, segments as string[], "GET");
 }
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
+  request: Request,
+  context: { params: Record<string, string | string[]> }
 ) {
-  return proxyRequest(request, params.path, 'POST');
+  const pathParam = context.params.path;
+  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
+  return proxyRequest(request, segments as string[], "POST");
 }
 
 export async function PUT(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
+  request: Request,
+  context: { params: Record<string, string | string[]> }
 ) {
-  return proxyRequest(request, params.path, 'PUT');
+  const pathParam = context.params.path;
+  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
+  return proxyRequest(request, segments as string[], "PUT");
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
+  request: Request,
+  context: { params: Record<string, string | string[]> }
 ) {
-  return proxyRequest(request, params.path, 'DELETE');
+  const pathParam = context.params.path;
+  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
+  return proxyRequest(request, segments as string[], "DELETE");
 }
 
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
+  request: Request,
+  context: { params: Record<string, string | string[]> }
 ) {
-  return proxyRequest(request, params.path, 'PATCH');
+  const pathParam = context.params.path;
+  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
+  return proxyRequest(request, segments as string[], "PATCH");
 }
 
 async function proxyRequest(
-  request: NextRequest,
+  request: Request,
   pathSegments: string[],
   method: string
 ) {
   try {
-    const path = pathSegments.join('/');
-    const url = `${API_BASE_URL}/${path}`;
-    
+    const path = pathSegments.join("/");
+    const qs = request.url.includes("?") ? "?" + request.url.split("?")[1] : "";
+    const url = `${API_BASE_URL}/${path}${qs}`;
+
     // Get the request body for POST/PUT/PATCH requests
     let body = undefined;
-    if (['POST', 'PUT', 'PATCH'].includes(method)) {
+    if (["POST", "PUT", "PATCH"].includes(method)) {
       try {
         body = await request.text();
       } catch (error) {
         // If no body, that's fine
+        console.log("error", error);
       }
     }
 
@@ -61,10 +72,10 @@ async function proxyRequest(
     const response = await fetch(url, {
       method,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         // Forward any authorization headers
-        ...(request.headers.get('authorization') && {
-          'Authorization': request.headers.get('authorization')!
+        ...(request.headers.get("authorization") && {
+          Authorization: request.headers.get("authorization")!,
         }),
       },
       body,
@@ -72,21 +83,22 @@ async function proxyRequest(
 
     // Get the response data
     const data = await response.text();
-    
+
     // Return the response with CORS headers
     return new NextResponse(data, {
       status: response.status,
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods":
+          "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
       },
     });
   } catch (error) {
-    console.error('Proxy error:', error);
+    console.error("Proxy error:", error);
     return NextResponse.json(
-      { error: 'Proxy request failed' },
+      { error: "Proxy request failed" },
       { status: 500 }
     );
   }
@@ -97,9 +109,9 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
 }

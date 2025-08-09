@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/components/Header'
@@ -24,29 +24,29 @@ export default function EditApplicationPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login')
-      return
+      router.push("/login");
+      return;
     }
-    loadApplication()
-  }, [isAuthenticated, router])
+    loadApplication();
+  }, [isAuthenticated, router, loadApplication]);
 
-  const loadApplication = async () => {
+  const loadApplication = useCallback(async () => {
     try {
-      const apps = await getApplications()
-      const app = apps.find((a: Application) => a.Application === params.id)
+      const apps = await getApplications();
+      const app = apps.find((a: Application) => a.Application === params.id);
       if (app) {
-        setApplication(app)
+        setApplication(app);
         setFormData({
           App_name: app.App_name,
           Application: app.Application,
           Email: app.Email,
-          Domain: app.Domain
-        })
+          Domain: app.Domain,
+        });
       }
     } catch (error) {
-      console.error('Failed to load application:', error)
+      console.error("Failed to load application:", error);
     }
-  }
+  }, [params.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
