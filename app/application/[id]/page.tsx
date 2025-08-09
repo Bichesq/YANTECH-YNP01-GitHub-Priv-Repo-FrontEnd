@@ -9,6 +9,7 @@ import { FaArrowLeft, FaBell } from "react-icons/fa";
 import { IoMailSharp } from "react-icons/io5";
 import { LuMessageSquare } from "react-icons/lu";
 import type { Application, Notification } from '@/types'
+// import { once } from 'events'
 
 export default function ApplicationDetailPage() {
   const params = useParams()
@@ -37,30 +38,28 @@ export default function ApplicationDetailPage() {
           // Mock notification data - replace with real API call
           setNotifications([
             {
-              id: "1",
-              type: "EMAIL",
-              recipient: "user@example.com",
-              subject: "Welcome Email",
-              message: "Welcome to our platform!",
-              status: "sent",
-              timestamp: "2024-01-15T10:30:00Z",
+              Application: "1",
+              OutputType: "EMAIL",
+              Recipient: "user@example.com",
+              Subject: "Welcome Email",
+              Message: "Welcome to our platform!",
+              Interval: {once: true},
             },
             {
-              id: "2",
-              type: "SMS",
-              recipient: "+1234567890",
-              message: "Your verification code is 123456",
-              status: "pending",
-              timestamp: "2024-01-15T11:00:00Z",
+              Application: "2",
+              Subject: "Verification Code",
+              OutputType: "SMS",
+              Recipient: "+1234567890",
+              Message: "Your verification code is 123456",
+              Interval: {daily: true},
             },
             {
-              id: "3",
-              type: "PUSH",
-              recipient: "device_token_123",
-              subject: "New Update Available",
-              message: "A new version of the app is available",
-              status: "failed",
-              timestamp: "2024-01-15T09:15:00Z",
+              Application: "3",
+              OutputType: "PUSH",
+              Recipient: "device_token_123",
+              Subject: "New Update Available",
+              Message: "A new version of the app is available",
+              Interval: {weekly: true},
             },
           ]);
         } catch (error) {
@@ -229,28 +228,28 @@ export default function ApplicationDetailPage() {
                 <div className="space-y-4">
                   {notifications.map((notification) => (
                     <div
-                      key={notification.id}
+                      key={notification.Application}
                       className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-gray-100 rounded-lg">
-                            {getTypeIcon(notification.type)}
+                            {getTypeIcon(notification.OutputType)}
                           </div>
                           <div>
                             <h3 className="font-medium text-gray-900">
-                              {notification.type}
+                              {notification.OutputType}
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            {/* <p className="text-sm text-gray-500">
                               {new Date(
-                                notification.timestamp
+                                notification.Interval
                               ).toLocaleString()}
-                            </p>
+                            </p> */}
                           </div>
                         </div>
-                        <span className={getStatusClass(notification.status)}>
+                        {/* <span className={getStatusClass(notification.status)}>
                           {notification.status}
-                        </span>
+                        </span> */}
                       </div>
 
                       <div className="space-y-2 text-sm">
@@ -259,17 +258,17 @@ export default function ApplicationDetailPage() {
                             Recipient:
                           </span>
                           <span className="ml-2 text-gray-900">
-                            {notification.recipient}
+                            {notification.Recipient}
                           </span>
                         </div>
 
-                        {notification.subject && (
+                        {notification.Subject && (
                           <div>
                             <span className="font-medium text-gray-700">
                               Subject:
                             </span>
                             <span className="ml-2 text-gray-900">
-                              {notification.subject}
+                              {notification.Subject}
                             </span>
                           </div>
                         )}
@@ -279,7 +278,7 @@ export default function ApplicationDetailPage() {
                             Message:
                           </span>
                           <span className="ml-2 text-gray-900">
-                            {notification.message}
+                            {notification.Message}
                           </span>
                         </div>
                       </div>

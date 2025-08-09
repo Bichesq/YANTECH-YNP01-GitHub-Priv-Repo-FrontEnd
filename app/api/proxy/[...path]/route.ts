@@ -2,49 +2,36 @@ import { NextResponse } from "next/server";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
-export async function GET(
-  request: Request,
-  context: { params: Record<string, string | string[]> }
-) {
-  const pathParam = context.params.path;
-  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
-  return proxyRequest(request, segments as string[], "GET");
+function extractPathSegments(request: Request) {
+  const url = new URL(request.url);
+  const after = url.pathname.replace(/^\/api\/proxy\//, "");
+  const segments = after ? after.split("/").filter(Boolean) : [];
+  return segments;
 }
 
-export async function POST(
-  request: Request,
-  context: { params: Record<string, string | string[]> }
-) {
-  const pathParam = context.params.path;
-  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
-  return proxyRequest(request, segments as string[], "POST");
+export async function GET(request: Request) {
+  const segments = extractPathSegments(request);
+  return proxyRequest(request, segments, "GET");
 }
 
-export async function PUT(
-  request: Request,
-  context: { params: Record<string, string | string[]> }
-) {
-  const pathParam = context.params.path;
-  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
-  return proxyRequest(request, segments as string[], "PUT");
+export async function POST(request: Request) {
+  const segments = extractPathSegments(request);
+  return proxyRequest(request, segments, "POST");
 }
 
-export async function DELETE(
-  request: Request,
-  context: { params: Record<string, string | string[]> }
-) {
-  const pathParam = context.params.path;
-  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
-  return proxyRequest(request, segments as string[], "DELETE");
+export async function PUT(request: Request) {
+  const segments = extractPathSegments(request);
+  return proxyRequest(request, segments, "PUT");
 }
 
-export async function PATCH(
-  request: Request,
-  context: { params: Record<string, string | string[]> }
-) {
-  const pathParam = context.params.path;
-  const segments = Array.isArray(pathParam) ? pathParam : [pathParam];
-  return proxyRequest(request, segments as string[], "PATCH");
+export async function DELETE(request: Request) {
+  const segments = extractPathSegments(request);
+  return proxyRequest(request, segments, "DELETE");
+}
+
+export async function PATCH(request: Request) {
+  const segments = extractPathSegments(request);
+  return proxyRequest(request, segments, "PATCH");
 }
 
 async function proxyRequest(

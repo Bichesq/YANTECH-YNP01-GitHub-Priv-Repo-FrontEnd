@@ -22,14 +22,6 @@ export default function EditApplicationPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-    loadApplication();
-  }, [isAuthenticated, router, loadApplication]);
-
   const loadApplication = useCallback(async () => {
     try {
       const apps = await getApplications();
@@ -47,6 +39,14 @@ export default function EditApplicationPage() {
       console.error("Failed to load application:", error);
     }
   }, [params.id]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+    loadApplication();
+  }, [isAuthenticated, router, loadApplication]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
