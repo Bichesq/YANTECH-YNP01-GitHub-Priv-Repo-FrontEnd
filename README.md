@@ -167,3 +167,4 @@ The frontend connects to the Admin service API:
 ## 📄 License
 
 This project is licensed under the MIT License.
+trigger
