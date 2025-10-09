@@ -59,11 +59,48 @@ export const createApplication = async (
   console.debug("[createApplication] Input data:", applicationData);
 
   try {
+    // Step 1: Create the application
     const response = await api.post("/app", applicationData);
     console.debug("[createApplication] Response status:", response.status);
     console.debug("[createApplication] Response data:", response.data);
 
-    return response.data;
+    const createdApp = response.data;
+
+    // Step 2: Generate API key for the created application
+    try {
+      const apiKeyResponse = await api.post(`/app/${createdApp.id}/api-key`, {
+        // Optional: include any metadata for the API key
+        name: `API Key for ${createdApp.name || 'Application'}`,
+        expires_at: null, // null for no expiration, or a date string
+      });
+      
+      console.debug("[createApplication] API Key generated:", apiKeyResponse.data);
+
+      // Step 3: Return the application with the API key attached
+      return {
+        ...createdApp,
+        apiKey: apiKeyResponse.data.api_key,
+        apiKeyId: apiKeyResponse.data.id,
+      };
+    } catch (apiKeyError: any) {
+      console.error("[createApplication] API Key generation failed:", apiKeyError);
+      // Application was created but API key failed
+      // You could either:
+      // 1. Return the app without the key (partial success)
+      // 2. Delete the app and throw an error (atomic operation)
+      
+      // Option 2: Rollback - delete the created app
+      try {
+        await api.delete(`/app/${createdApp.id}`);
+        console.debug("[createApplication] Rolled back application creation");
+      } catch (deleteError) {
+        console.error("[createApplication] Rollback failed:", deleteError);
+      }
+      
+      throw new Error(
+        apiKeyError.response?.data?.detail || "Failed to generate API key"
+      );
+    }
   } catch (error: any) {
     console.error("[createApplication] Error:", error);
     console.error(
