@@ -9,6 +9,7 @@ import ApplicationList from '@/components/ApplicationList'
 import NotificationForm from "@/components/NotificationForm";
 import { getApplications } from "@/services/api";
 import { FaPlus, FaBell } from "react-icons/fa";
+import { MdManageAccounts } from "react-icons/md";
 import type { Application } from "@/types";
 
 export default function DashboardPage() {
@@ -77,6 +78,13 @@ export default function DashboardPage() {
               >
                 <FaPlus className="w-4 h-4 mt-1" />
                 Register Application
+              </button>
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex gap-2 btn-secondary p-2 rounded mx-auto w-[80%] justify-center sm:w-auto "
+              >
+                <MdManageAccounts className="w-4 h-4 mt-1" />
+                Manage APIs
               </button>
             </div>
           </div>
