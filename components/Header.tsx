@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { IoLogOutOutline, IoShield } from "react-icons/io5";
-import { FaBell } from "react-icons/fa";
+import { MdDashboard } from "react-icons/md";
 
 export default function Header() {
   const { logout, user } = useAuth()
@@ -20,13 +20,13 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary-100 rounded-lg">
-              <FaBell className="w-6 h-6 text-primary-600" />
+              <MdDashboard className="w-6 h-6 text-primary-600" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
                 Admin Dashboard
               </h1>
-              <p className="text-xs text-gray-500">Notification System</p>
+              <p className="text-xs text-gray-500">YANTECH Notification System</p>
             </div>
           </div>
 
