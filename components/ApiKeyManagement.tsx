@@ -1,13 +1,8 @@
+import { ApiKey } from '@/types';
 import React, { useState } from 'react';
 
-// Define a type for an API key item for the Status and Delete sections
-interface ApiKey {
-  id: string;
-  name: string;
-  created: string;
-  expiry: string;
-  isRevoked: boolean;
-  createdDate: string;
+interface ComponentProps {
+  handleGenerateNewKey: () => void;
 }
 
 const initialKeys: ApiKey[] = [
@@ -45,12 +40,11 @@ const initialKeys: ApiKey[] = [
   }
 ];
 
-const ApiKeyManagement: React.FC = () => {
+const ApiKeyManagement: React.FC<ComponentProps> = ({handleGenerateNewKey}) => {
   // Mock data to simulate key status and deletable keys
   const [currentKeys, setCurrentKeys] = useState<ApiKey[]>(initialKeys);
   const [deletableKeys, setDeletableKeys] = useState<string[]>(['Kcdys', '12345', '12axys']);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  const [newKeyName, setNewKeyName] = useState('');
 
   // Styles for the cards
   const cardStyle: React.CSSProperties = {
@@ -95,14 +89,6 @@ const ApiKeyManagement: React.FC = () => {
     alert(`Keys ${selectedKeys.join(', ')} revoked/deleted.`);
   };
   
-  // Handle key creation (simulated)
-  const handleGenerateNewKey = () => {
-      if (!newKeyName) return alert("Please enter a key name.");
-      // Simulate API call to generate key
-      alert(`Generated new key for: ${newKeyName}`);
-      setNewKeyName('');
-  };
-
   // 1. Functionality to Delete/Revoke a Key
   const handleDeleteKey = (keyId: string) => {
     // In a real app, this would be an API call to revoke the key
@@ -113,9 +99,7 @@ const ApiKeyManagement: React.FC = () => {
   return (
     <div style={{ background: '#f4f7f9', padding: '40px', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
       
-      
-
-      {/* Create New API Key Section */}
+      {/* Create New API Key Section
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: '0', fontSize: '1.2em' }}>Create New API Key</h2>
@@ -141,24 +125,30 @@ const ApiKeyManagement: React.FC = () => {
             Generate New Key
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Current API Key Status Section */}
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
           <h2 style={{ margin: '0', fontSize: '1.2em' }}>Current API Key Status</h2>
-          <span>&#x2304;</span> {/* Down arrow icon */}
+          <button 
+            onClick={handleGenerateNewKey}
+            style={{ padding: '8px 15px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+          >
+            Generate New Key
+          </button>
         </div>
-        <h2>Current API Keys</h2>
+        
       {currentKeys.length === 0 ? (
         <p>No active API keys.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
           <thead>
             <tr style={{ background: '#f0f0f0' }}>
               <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Key Name</th>
-              <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Key ID (Display Name)</th>
+              <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Key ID</th>
               <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Created Date</th>
+              <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Expiry Date</th>
               <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Actions</th>
             </tr>
           </thead>
@@ -168,6 +158,7 @@ const ApiKeyManagement: React.FC = () => {
                 <td style={{ border: '1px solid #ddd', padding: '10px' }}>{key.name}</td>
                 <td style={{ border: '1px solid #ddd', padding: '10px', fontFamily: 'monospace' }}>{key.id}</td>
                 <td style={{ border: '1px solid #ddd', padding: '10px' }}>{key.created}</td>
+                <td style={{ border: '1px solid #ddd', padding: '10px' }}>{key.expiry}</td>
                 <td style={{ border: '1px solid #ddd', padding: '10px' }}>
                   <button onClick={() => handleDeleteKey(key.id)} style={{ color: 'red', cursor: 'pointer' }}>
                     Revoke/Delete

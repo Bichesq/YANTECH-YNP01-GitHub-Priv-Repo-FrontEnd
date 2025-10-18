@@ -5,48 +5,44 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import ApplicationForm from '@/components/ApplicationForm'
-import ApplicationList from '@/components/ApplicationList'
-import NotificationForm from "@/components/NotificationForm";
+import ApiCreationForm from '@/components/ApiCreationForm'
 import { getApplications } from "@/services/api";
 import { FaPlus, FaBell } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import type { Application } from "@/types";
 import ApiKeyManagement from '@/components/ApiKeyManagement'
 
-export default function DashboardPage() {
+export default function ApiKeyManagementPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [showNotificationForm, setShowNotificationForm] = useState(false);
+  const [showApiCreationForm, setShowApiCreationForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuth();
+  const [newKeyName, setNewKeyName] = useState('');
   const router = useRouter();
 
-//   useEffect(() => {
-//     if (!isAuthenticated) {
-//       router.push("/login");
-//       return;
-//     }
-//     loadApplications();
-//   }, [isAuthenticated, router]);
-
-  const loadApplications = async () => {
-    try {
-      const apps = await getApplications();
-      setApplications(apps);
-    } catch (error: unknown) {
-      console.error("Failed to load applications:", error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
     }
-  };
+  }, [isAuthenticated, router]);
 
   const handleApplicationCreated = () => {
     setShowForm(false);
-    loadApplications();
   };
 
-  const handleNotificationSent = () => {
-    setShowNotificationForm(false);
+  const handleApiCreated = () => {
+    setShowApiCreationForm(false);
+  };
+
+  // Handle key creation (simulated)
+  const handleGenerateNewKey = () => {
+    setShowApiCreationForm(true)
+      // if (!newKeyName) return alert("Please enter a key name.");
+      // // Simulate API call to generate key
+      // alert(`Generated new key for: ${newKeyName}`);
+      // setNewKeyName('');
   };
 
 //   if (!isAuthenticated) {
@@ -91,10 +87,10 @@ export default function DashboardPage() {
           />
         )}
 
-        {showNotificationForm && (
-          <NotificationForm
-            onClose={() => setShowNotificationForm(false)}
-            onSuccess={handleNotificationSent}
+        {showApiCreationForm && (
+          <ApiCreationForm
+            onClose={() => setShowApiCreationForm(false)}
+            onSuccess={handleApiCreated}
           />
         )}
 
@@ -107,6 +103,7 @@ export default function DashboardPage() {
           />
         )} */}
         <ApiKeyManagement
+        handleGenerateNewKey={handleGenerateNewKey}
           />
       </main>
     </div>

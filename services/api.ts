@@ -1,5 +1,7 @@
 import axios from "axios";
 import type {
+  ApiKey,
+  ApiCreationFormData,
   Application,
   ApplicationFormData,
   Notification,
@@ -112,6 +114,27 @@ export const createApplication = async (
     );
   }
 };
+
+export const createApiKey = async (
+  apiCreationData: ApiCreationFormData
+): Promise<ApiKey> => {
+  // Step 2: Generate API key for the created application
+    try {
+      const apiKeyResponse = await api.post(`/app/${apiCreationData.Api_id}/api-key`, apiCreationData);
+      
+      console.debug("[createApiKey] API Key generated:", apiKeyResponse.data);
+
+      const apikey = apiKeyResponse.data
+
+      return apikey;
+
+    } catch (apiKeyError: any) {
+      console.error("[createApplication] API Key generation failed:", apiKeyError);
+      return apiKeyError
+    }
+
+    
+}
 
 export const requestNotification = async (
   notificationData: NotificationRequest
