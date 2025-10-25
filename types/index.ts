@@ -56,3 +56,25 @@ export interface ApplicationListProps {
   applications: Application[];
   onUpdate: () => void;
 }
+
+export interface APIKeyInfo {
+  id: number;
+  name: string | null;
+  created_at: string;
+  expires_at: string | null;
+  last_used_at: string | null;
+  is_active: boolean;
+}
+
+export interface APIKeyResponse {
+  id: number;
+  api_key: string;
+  name: string | null;
+  created_at: string;
+  expires_at: string | null;
+}
+
+export interface APIKeyCreate {
+  name?: string;
+  expires_at?: string;
+}

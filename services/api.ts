@@ -11,8 +11,25 @@ import type {
 const APPS_BASE_URL = "/api/proxy";
 const REQUESTOR_BASE_URL = "/api/requestor";
 
-// const API_BASE_URL =
-//   process.env.NEXT_PUBLIC_API_URL || "http://107.21.170.151:8001";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://54.167.116.134:8001";
+
+// Test backend connection
+export const testConnection = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('✅ Backend connection successful:', data);
+    return true;
+  } catch (error) {
+    console.error('❌ Backend connection failed:', error);
+    return false;
+  }
+};
+
 
 const api = axios.create({
   baseURL: APPS_BASE_URL,
@@ -54,7 +71,7 @@ export const getApplications = async (): Promise<Application[]> => {
 };
 
 export const createApplication = async (
-  applicationData: ApplicationFormData
+  applicationData: ApplicationFormData 
 ): Promise<Application> => {
   console.debug("[createApplication] Input data:", applicationData);
 
