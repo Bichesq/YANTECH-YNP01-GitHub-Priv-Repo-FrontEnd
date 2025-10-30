@@ -12,7 +12,7 @@ const APPS_BASE_URL = "/api/proxy";
 const REQUESTOR_BASE_URL = "/api/requestor";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://54.167.116.134:8001";
+  process.env.NEXT_PUBLIC_API_URL || "http://54.196.198.21:8001";
 
 // Test backend connection
 export const testConnection = async (): Promise<boolean> => {
@@ -39,7 +39,7 @@ const api = axios.create({
 });
 
 const apiRequestor = axios.create({
-  baseURL: REQUESTOR_BASE_URL, // rewrites to port 8000
+  baseURL: REQUESTOR_BASE_URL, // rewrites to port 80
   headers: {
     "Content-Type": "application/json",
   },

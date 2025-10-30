@@ -44,11 +44,14 @@ async function proxyRequest(
     const qs = request.url.includes("?") ? "?" + request.url.split("?")[1] : "";
     const url = `${API_BASE_URL}/${path}${qs}`;
 
+    console.log(`[Proxy] ${method} ${url}`);
+
     // Get the request body for POST/PUT/PATCH requests
     let body = undefined;
     if (["POST", "PUT", "PATCH"].includes(method)) {
       try {
         body = await request.text();
+        console.log(`[Proxy] Request body:`, body);
       } catch (error) {
         // If no body, that's fine
         console.log("error", error);
@@ -68,6 +71,8 @@ async function proxyRequest(
       body,
     });
 
+    console.log(`[Proxy] Response status: ${response.status}`);
+
     // Get the response data
     const data = await response.text();
 
@@ -83,9 +88,14 @@ async function proxyRequest(
       },
     });
   } catch (error) {
-    console.error("Proxy error:", error);
+    console.error("[Proxy] Error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Proxy request failed";
     return NextResponse.json(
-      { error: "Proxy request failed" },
+      {
+        error: "Failed to connect to backend server",
+        details: errorMessage,
+        backend_url: API_BASE_URL
+      },
       { status: 500 }
     );
   }
