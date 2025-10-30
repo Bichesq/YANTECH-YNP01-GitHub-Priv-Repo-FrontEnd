@@ -4,14 +4,19 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   async rewrites() {
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://54.196.198.21:80";
+    const requestorUrl =
+      process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.196.198.21:80";
+
     return [
       {
         source: "/api/proxy/:path*",
-        destination: "http://localhost:8001/:path*", // admin service
+        destination: `${apiUrl}/:path*`, // admin service on EC2
       },
       {
         source: "/api/requestor/:path*",
-        destination: "http://localhost:8000/:path*", // requestor service
+        destination: `${requestorUrl}/:path*`, // requestor service on EC2
       },
     ];
   },
