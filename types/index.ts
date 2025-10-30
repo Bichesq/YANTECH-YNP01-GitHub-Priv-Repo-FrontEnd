@@ -14,6 +14,20 @@ export interface ApplicationFormData {
   Domain: string
 }
 
+export interface ApiKey {
+  id: string;
+  name: string;
+  created: string;
+  expiry: string;
+  isRevoked: boolean;
+  createdDate: string;
+}
+
+export interface ApiCreationFormData {
+  Api_name?: string,
+  Api_id: string
+}
+
 export interface Notification {
   Application: string;
   Recipient: string;
