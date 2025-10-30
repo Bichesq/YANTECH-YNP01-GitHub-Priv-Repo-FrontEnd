@@ -5,9 +5,9 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://54.196.198.21:8001";
+      process.env.NEXT_PUBLIC_API_URL || "http://54.196.198.21:80";
     const requestorUrl =
-      process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.196.198.21:8001";
+      process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.196.198.21:80";
 
     return [
       {
