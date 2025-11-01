@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/components/Header'
 import { getApplications, updateApplication } from '@/services/api'
 import { FaArrowLeft } from "react-icons/fa"
 import type { Application, ApplicationFormData } from '@/types'
 
-export default function EditApplicationPage() {
-  const params = useParams()
+function EditApplicationContent() {
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { isAuthenticated } = useAuth()
   const [application, setApplication] = useState<Application | null>(null)
@@ -22,10 +22,17 @@ export default function EditApplicationPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const id = searchParams.get('id')
+
   const loadApplication = useCallback(async () => {
+    if (!id) {
+      router.push("/dashboard");
+      return;
+    }
+
     try {
       const apps = await getApplications();
-      const app = apps.find((a: Application) => a.Application === params.id);
+      const app = apps.find((a: Application) => a.Application === id);
       if (app) {
         setApplication(app);
         setFormData({
@@ -38,7 +45,7 @@ export default function EditApplicationPage() {
     } catch (error) {
       console.error("Failed to load application:", error);
     }
-  }, [params.id]);
+  }, [id, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -60,8 +67,14 @@ export default function EditApplicationPage() {
     setLoading(true)
     setError('')
 
+    if (!id) {
+      setError("Application ID is missing");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await updateApplication(params.id as string, formData)
+      await updateApplication(id, formData)
       router.push('/dashboard')
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -180,4 +193,19 @@ export default function EditApplicationPage() {
       </main>
     </div>
   )
+}
+
+export default function EditApplicationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    }>
+      <EditApplicationContent />
+    </Suspense>
+  );
 }

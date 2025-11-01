@@ -50,11 +50,11 @@ export default function ApplicationList({
   }, [applications]);
 
   const handleViewDetails = (app: Application) => {
-    router.push(`/application/${app.Application}`);
+    router.push(`/application?id=${app.Application}`);
   };
 
   const handleEdit = (app: Application) => {
-    router.push(`/application/${app.Application}/edit`);
+    router.push(`/application/edit?id=${app.Application}`);
   };
 
   const handleDelete = async (app: Application) => {

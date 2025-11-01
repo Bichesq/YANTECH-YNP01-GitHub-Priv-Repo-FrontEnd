@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/components/Header'
 import { getApplications } from '@/services/api'
@@ -9,67 +9,71 @@ import { FaArrowLeft, FaBell } from "react-icons/fa";
 import { IoMailSharp } from "react-icons/io5";
 import { LuMessageSquare } from "react-icons/lu";
 import type { Application, Notification } from '@/types'
-// import { once } from 'events'
 
-export default function ApplicationDetailPage() {
-  const params = useParams()
+function ApplicationDetailContent() {
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { isAuthenticated } = useAuth()
   const [application, setApplication] = useState<Application | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
 
+  const id = searchParams.get('id')
 
-  
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
 
-    useEffect(() => {
-      if (!isAuthenticated) {
-        router.push("/login");
-        return;
+    if (!id) {
+      router.push("/dashboard");
+      return;
+    }
+
+    const loadApplicationDetail = async () => {
+      try {
+        const apps = await getApplications();
+        const app = apps.find(
+          (a: Application) => a.Application === id
+        );
+        setApplication(app || null);
+
+        // Mock notification data - replace with real API call
+        setNotifications([
+          {
+            Application: "1",
+            OutputType: "EMAIL",
+            Recipient: "user@example.com",
+            Subject: "Welcome Email",
+            Message: "Welcome to our platform!",
+            Interval: {once: true},
+          },
+          {
+            Application: "2",
+            Subject: "Verification Code",
+            OutputType: "SMS",
+            Recipient: "+1234567890",
+            Message: "Your verification code is 123456",
+            Interval: {daily: true},
+          },
+          {
+            Application: "3",
+            OutputType: "PUSH",
+            Recipient: "device_token_123",
+            Subject: "New Update Available",
+            Message: "A new version of the app is available",
+            Interval: {weekly: true},
+          },
+        ]);
+      } catch (error) {
+        console.error("Failed to load application:", error);
+      } finally {
+        setLoading(false);
       }
-      const loadApplicationDetail = async () => {
-        try {
-          const apps = await getApplications();
-          const app = apps.find(
-            (a: Application) => a.Application === params.id
-          );
-          setApplication(app || null);
-
-          // Mock notification data - replace with real API call
-          setNotifications([
-            {
-              Application: "1",
-              OutputType: "EMAIL",
-              Recipient: "user@example.com",
-              Subject: "Welcome Email",
-              Message: "Welcome to our platform!",
-              Interval: {once: true},
-            },
-            {
-              Application: "2",
-              Subject: "Verification Code",
-              OutputType: "SMS",
-              Recipient: "+1234567890",
-              Message: "Your verification code is 123456",
-              Interval: {daily: true},
-            },
-            {
-              Application: "3",
-              OutputType: "PUSH",
-              Recipient: "device_token_123",
-              Subject: "New Update Available",
-              Message: "A new version of the app is available",
-              Interval: {weekly: true},
-            },
-          ]);
-        } catch (error) {
-          console.error("Failed to load application:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadApplicationDetail();
-    }, [isAuthenticated, params.id, router ]);
+    };
+    loadApplicationDetail();
+  }, [isAuthenticated, id, router]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -240,16 +244,8 @@ export default function ApplicationDetailPage() {
                             <h3 className="font-medium text-gray-900">
                               {notification.OutputType}
                             </h3>
-                            {/* <p className="text-sm text-gray-500">
-                              {new Date(
-                                notification.Interval
-                              ).toLocaleString()}
-                            </p> */}
                           </div>
                         </div>
-                        {/* <span className={getStatusClass(notification.status)}>
-                          {notification.status}
-                        </span> */}
                       </div>
 
                       <div className="space-y-2 text-sm">
@@ -291,5 +287,20 @@ export default function ApplicationDetailPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ApplicationDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    }>
+      <ApplicationDetailContent />
+    </Suspense>
   );
 }

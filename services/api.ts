@@ -10,12 +10,13 @@ import type {
   APIKeyInfo,
 } from "@/types";
 
-// Use the Next.js API proxy to avoid CORS issues
-const APPS_BASE_URL = "/api/proxy";
-const REQUESTOR_BASE_URL = "/api/requestor";
+// Call backend services directly (requires CORS configuration on backend)
+const APPS_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://54.87.39.36:80";
+const REQUESTOR_BASE_URL =
+  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.87.39.36:80";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://54.196.198.21:80";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://54.87.39.36:80";
 
 // Test backend connection
 export const testConnection = async (): Promise<boolean> => {
@@ -41,7 +42,7 @@ const api = axios.create({
 });
 
 const apiRequestor = axios.create({
-  baseURL: REQUESTOR_BASE_URL, // rewrites to port 80
+  baseURL: REQUESTOR_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

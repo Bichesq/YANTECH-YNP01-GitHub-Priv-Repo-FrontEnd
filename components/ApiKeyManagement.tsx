@@ -75,7 +75,6 @@ const ApiKeyManagement: React.FC<ComponentProps> = ({handleGenerateNewKey}) => {
 
   // Handle deletion/revocation (simulated)
   const handleDeleteSelected = () => {
-    const [newKeyName, setNewKeyName] = useState('');
     if (selectedKeys.length === 0) return;
     
     // Simulate API call to delete/revoke keys
