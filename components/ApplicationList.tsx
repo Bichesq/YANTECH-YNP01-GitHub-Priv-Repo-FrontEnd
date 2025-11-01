@@ -1,38 +1,103 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
 import {
   IoEyeSharp,
   IoTrashSharp,
   IoMailSharp,
   IoGlobeSharp,
 } from "react-icons/io5";
-import { FaEdit } from "react-icons/fa";
-import type { Application, ApplicationListProps } from '@/types'
-import { deleteApplication } from '@/services/api'
+import { FaEdit, FaCircle } from "react-icons/fa";
+import type { Application, ApplicationListProps } from "@/types";
+import { deleteApplication, getApplicationApiKeys } from "@/services/api";
 
-export default function ApplicationList({ applications, onUpdate }: ApplicationListProps) {
-  const router = useRouter()
+export default function ApplicationList({
+  applications,
+  onUpdate,
+}: ApplicationListProps) {
+  const router = useRouter();
+  const [appStatuses, setAppStatuses] = useState<Record<string, boolean>>({});
+
+  // Fetch API keys for all applications to determine active status
+  useEffect(() => {
+    const fetchApiKeysForApps = async () => {
+      const statuses: Record<string, boolean> = {};
+
+      await Promise.all(
+        applications.map(async (app) => {
+          try {
+            const apiKeys = await getApplicationApiKeys(app.Application);
+            // Application is active if it has at least one non-revoked API key
+            const hasActiveKey = apiKeys.some((key) => key.is_active);
+            statuses[app.Application] = hasActiveKey;
+          } catch (error) {
+            console.error(
+              `Failed to fetch API keys for ${app.Application}:`,
+              error
+            );
+            statuses[app.Application] = false;
+          }
+        })
+      );
+
+      setAppStatuses(statuses);
+    };
+
+    if (applications.length > 0) {
+      fetchApiKeysForApps();
+    }
+  }, [applications]);
 
   const handleViewDetails = (app: Application) => {
-    router.push(`/application/${app.Application}`)
-  }
+    router.push(`/application/${app.Application}`);
+  };
 
   const handleEdit = (app: Application) => {
-    router.push(`/application/${app.Application}/edit`)
-  }
+    router.push(`/application/${app.Application}/edit`);
+  };
 
   const handleDelete = async (app: Application) => {
     if (window.confirm(`Are you sure you want to delete ${app.App_name}?`)) {
       try {
-        await deleteApplication(app.Application)
-        onUpdate() // Refresh the applications list
+        await deleteApplication(app.Application);
+        onUpdate(); // Refresh the applications list
       } catch (error) {
-        console.error('Failed to delete application:', error)
-        alert('Failed to delete application. Please try again.')
+        console.error("Failed to delete application:", error);
+        alert("Failed to delete application. Please try again.");
       }
     }
-  }
+  };
+
+  const getStatusBadge = (appId: string) => {
+    const isActive = appStatuses[appId];
+
+    if (isActive === undefined) {
+      // Still loading
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-500 text-xs font-medium rounded-full">
+          <FaCircle className="w-2 h-2 animate-pulse" />
+          Loading...
+        </span>
+      );
+    }
+
+    if (isActive) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+          <FaCircle className="w-2 h-2" />
+          Active
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+        <FaCircle className="w-2 h-2" />
+        Inactive
+      </span>
+    );
+  };
 
   if (applications.length === 0) {
     return (
@@ -55,13 +120,16 @@ export default function ApplicationList({ applications, onUpdate }: ApplicationL
       {applications.map((app) => (
         <div
           key={app.Application}
-          className="card hover:shadow-md transition-shadow duration-200 group"
+          className="card hover:shadow-md transition-shadow duration-200 p-3 group"
         >
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">
-                {app.App_name}
-              </h3>
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                  {app.App_name}
+                </h3>
+                {getStatusBadge(app.Application)}
+              </div>
               <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">
                 {app.Application}
               </span>

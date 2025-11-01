@@ -7,6 +7,7 @@ import type {
   Notification,
   NotificationRequest,
   NotificationResponse,
+  APIKeyInfo,
 } from "@/types";
 
 // Use the Next.js API proxy to avoid CORS issues
@@ -24,14 +25,13 @@ export const testConnection = async (): Promise<boolean> => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log('✅ Backend connection successful:', data);
+    console.log("✅ Backend connection successful:", data);
     return true;
   } catch (error) {
-    console.error('❌ Backend connection failed:', error);
+    console.error("❌ Backend connection failed:", error);
     return false;
   }
 };
-
 
 const api = axios.create({
   baseURL: APPS_BASE_URL,
@@ -73,7 +73,7 @@ export const getApplications = async (): Promise<Application[]> => {
 };
 
 export const createApplication = async (
-  applicationData: ApplicationFormData 
+  applicationData: ApplicationFormData
 ): Promise<Application> => {
   console.debug("[createApplication] Input data:", applicationData);
 
@@ -89,11 +89,14 @@ export const createApplication = async (
     try {
       const apiKeyResponse = await api.post(`/app/${createdApp.id}/api-key`, {
         // Optional: include any metadata for the API key
-        name: `API Key for ${createdApp.name || 'Application'}`,
+        name: `API Key for ${createdApp.name || "Application"}`,
         expires_at: null, // null for no expiration, or a date string
       });
-      
-      console.debug("[createApplication] API Key generated:", apiKeyResponse.data);
+
+      console.debug(
+        "[createApplication] API Key generated:",
+        apiKeyResponse.data
+      );
 
       // Step 3: Return the application with the API key attached
       return {
@@ -102,12 +105,15 @@ export const createApplication = async (
         apiKeyId: apiKeyResponse.data.id,
       };
     } catch (apiKeyError: any) {
-      console.error("[createApplication] API Key generation failed:", apiKeyError);
+      console.error(
+        "[createApplication] API Key generation failed:",
+        apiKeyError
+      );
       // Application was created but API key failed
       // You could either:
       // 1. Return the app without the key (partial success)
       // 2. Delete the app and throw an error (atomic operation)
-      
+
       // Option 2: Rollback - delete the created app
       try {
         await api.delete(`/app/${createdApp.id}`);
@@ -115,7 +121,7 @@ export const createApplication = async (
       } catch (deleteError) {
         console.error("[createApplication] Rollback failed:", deleteError);
       }
-      
+
       throw new Error(
         apiKeyError.response?.data?.detail || "Failed to generate API key"
       );
@@ -136,22 +142,25 @@ export const createApiKey = async (
   apiCreationData: ApiCreationFormData
 ): Promise<ApiKey> => {
   // Step 2: Generate API key for the created application
-    try {
-      const apiKeyResponse = await api.post(`/app/${apiCreationData.Api_id}/api-key`, apiCreationData);
-      
-      console.debug("[createApiKey] API Key generated:", apiKeyResponse.data);
+  try {
+    const apiKeyResponse = await api.post(
+      `/app/${apiCreationData.Api_id}/api-key`,
+      apiCreationData
+    );
 
-      const apikey = apiKeyResponse.data
+    console.debug("[createApiKey] API Key generated:", apiKeyResponse.data);
 
-      return apikey;
+    const apikey = apiKeyResponse.data;
 
-    } catch (apiKeyError: any) {
-      console.error("[createApplication] API Key generation failed:", apiKeyError);
-      return apiKeyError
-    }
-
-    
-}
+    return apikey;
+  } catch (apiKeyError: any) {
+    console.error(
+      "[createApplication] API Key generation failed:",
+      apiKeyError
+    );
+    return apiKeyError;
+  }
+};
 
 export const requestNotification = async (
   notificationData: NotificationRequest
@@ -216,5 +225,18 @@ export const getNotifications = async (
     return response.data;
   } catch (error: any) {
     throw new Error("Failed to fetch notifications");
+  }
+};
+
+export const getApplicationApiKeys = async (
+  applicationId: string
+): Promise<APIKeyInfo[]> => {
+  try {
+    const response = await api.get(`/app/${applicationId}/api-keys`);
+    return response.data;
+  } catch (error: any) {
+    console.error("[getApplicationApiKeys] Error:", error);
+    // Return empty array if API keys endpoint fails
+    return [];
   }
 };

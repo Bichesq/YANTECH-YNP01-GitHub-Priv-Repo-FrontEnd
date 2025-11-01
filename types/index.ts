@@ -1,10 +1,12 @@
 export interface Application {
-  Application: string
-  App_name: string
-  Email: string
-  Domain: string
-  'SES-Domain-ARN'?: string
-  'SNS-Topic-ARN'?: string
+  Application: string;
+  App_name: string;
+  Email: string;
+  Domain: string;
+  "SES-Domain-ARN"?: string;
+  "SNS-Topic-ARN"?: string;
+  api_keys?: APIKeyInfo[];
+  is_active?: boolean;
 }
 
 export interface ApplicationFormData {
