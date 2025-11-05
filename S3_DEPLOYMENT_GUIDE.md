@@ -244,7 +244,7 @@ aws s3api put-bucket-policy \
 ```bash
 npm run deploy:s3
 # or manually:
-aws s3 sync out/ s3://your-app-name --delete
+aws s3 sync out/ s3://ynp01-s3-frontend2 --delete
 ```
 
 ### 6. Access Your Site
