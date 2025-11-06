@@ -11,14 +11,14 @@ import { LuMessageSquare } from "react-icons/lu";
 import type { Application, Notification } from '@/types'
 
 function ApplicationDetailContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const { isAuthenticated } = useAuth()
-  const [application, setApplication] = useState<Application | null>(null)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const [application, setApplication] = useState<Application | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const id = searchParams.get('id')
+  const id = searchParams.get("id");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -34,9 +34,7 @@ function ApplicationDetailContent() {
     const loadApplicationDetail = async () => {
       try {
         const apps = await getApplications();
-        const app = apps.find(
-          (a: Application) => a.Application === id
-        );
+        const app = apps.find((a: Application) => a.Application === id);
         setApplication(app || null);
 
         // Mock notification data - replace with real API call
@@ -47,7 +45,7 @@ function ApplicationDetailContent() {
             Recipient: "user@example.com",
             Subject: "Welcome Email",
             Message: "Welcome to our platform!",
-            Interval: {once: true},
+            Interval: { once: true },
           },
           {
             Application: "2",
@@ -55,7 +53,7 @@ function ApplicationDetailContent() {
             OutputType: "SMS",
             Recipient: "+1234567890",
             Message: "Your verification code is 123456",
-            Interval: {daily: true},
+            Interval: { daily: true },
           },
           {
             Application: "3",
@@ -63,7 +61,7 @@ function ApplicationDetailContent() {
             Recipient: "device_token_123",
             Subject: "New Update Available",
             Message: "A new version of the app is available",
-            Interval: {weekly: true},
+            Interval: { weekly: true },
           },
         ]);
       } catch (error) {
@@ -77,24 +75,28 @@ function ApplicationDetailContent() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'EMAIL': return <IoMailSharp className="w-5 h-5" />;
-      case 'SMS': return <LuMessageSquare className="w-5 h-5" />;
-      case 'PUSH': return <FaBell className="w-5 h-5" />
-      default: return <FaBell className="w-5 h-5" />
+      case "EMAIL":
+        return <IoMailSharp className="w-5 h-5" />;
+      case "SMS":
+        return <LuMessageSquare className="w-5 h-5" />;
+      case "PUSH":
+        return <FaBell className="w-5 h-5" />;
+      default:
+        return <FaBell className="w-5 h-5" />;
     }
-  }
+  };
 
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'sent': return 'status-badge status-sent'
-      case 'pending': return 'status-badge status-pending'
-      case 'failed': return 'status-badge status-failed'
-      default: return 'status-badge bg-gray-100 text-gray-600'
-    }
-  }
+  // const getStatusClass = (status: string) => {
+  //   switch (status) {
+  //     case 'sent': return 'status-badge status-sent'
+  //     case 'pending': return 'status-badge status-pending'
+  //     case 'failed': return 'status-badge status-failed'
+  //     default: return 'status-badge bg-gray-100 text-gray-600'
+  //   }
+  // }
 
   if (!isAuthenticated) {
-    return null
+    return null;
   }
 
   if (loading) {
@@ -105,7 +107,7 @@ function ApplicationDetailContent() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!application) {

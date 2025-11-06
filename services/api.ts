@@ -1,6 +1,5 @@
 import axios from "axios";
 import type {
-  ApiKey,
   ApiCreationFormData,
   Application,
   ApplicationFormData,
@@ -8,15 +7,17 @@ import type {
   NotificationRequest,
   NotificationResponse,
   APIKeyInfo,
+  APIKeyResponse,
 } from "@/types";
 
 // Call backend services directly (requires CORS configuration on backend)
 const APPS_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://54.87.39.36:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://98.81.247.123:80";
 const REQUESTOR_BASE_URL =
-  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.87.39.36:80";
+  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://98.81.247.123:80";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://54.87.39.36:80";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://98.81.247.123:80";
 
 // Test backend connection
 export const testConnection = async (): Promise<boolean> => {
@@ -141,25 +142,38 @@ export const createApplication = async (
 
 export const createApiKey = async (
   apiCreationData: ApiCreationFormData
-): Promise<ApiKey> => {
-  // Step 2: Generate API key for the created application
+): Promise<APIKeyResponse> => {
+  console.log("[createApiKey] Creating API key with data:", apiCreationData);
+
   try {
+    // Validate that app_id is provided
+    if (!apiCreationData.app_id || apiCreationData.app_id === 0) {
+      throw new Error("Application ID is required");
+    }
+
+    // Prepare the request body according to backend APIKeyCreate schema
+    const requestBody = {
+      name: apiCreationData.name || undefined,
+      expires_at: apiCreationData.expires_at || null,
+    };
+
     const apiKeyResponse = await api.post(
-      `/app/${apiCreationData.Api_id}/api-key`,
-      apiCreationData
+      `/app/${apiCreationData.app_id}/api-key`,
+      requestBody
     );
 
-    console.debug("[createApiKey] API Key generated:", apiKeyResponse.data);
+    console.log("[createApiKey] API Key generated:", apiKeyResponse.data);
 
-    const apikey = apiKeyResponse.data;
-
-    return apikey;
+    return apiKeyResponse.data;
   } catch (apiKeyError: any) {
-    console.error(
-      "[createApplication] API Key generation failed:",
-      apiKeyError
+    console.error("[createApiKey] API Key generation failed:", apiKeyError);
+
+    // Throw a proper error with the backend message if available
+    throw new Error(
+      apiKeyError.response?.data?.detail ||
+        apiKeyError.message ||
+        "Failed to generate API key"
     );
-    return apiKeyError;
   }
 };
 

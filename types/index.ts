@@ -1,4 +1,5 @@
 export interface Application {
+  id?: number; // Database ID from backend
   Application: string;
   App_name: string;
   Email: string;
@@ -10,10 +11,10 @@ export interface Application {
 }
 
 export interface ApplicationFormData {
-  App_name: string
-  Application: string
-  Email: string
-  Domain: string
+  App_name: string;
+  Application: string;
+  Email: string;
+  Domain: string;
 }
 
 export interface ApiKey {
@@ -26,8 +27,9 @@ export interface ApiKey {
 }
 
 export interface ApiCreationFormData {
-  Api_name?: string,
-  Api_id: string
+  name?: string; // API key name
+  app_id: number; // Database ID of the application
+  expires_at?: string | null; // Optional expiration date
 }
 
 export interface Notification {

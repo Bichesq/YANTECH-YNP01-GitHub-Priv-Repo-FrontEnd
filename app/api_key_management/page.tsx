@@ -6,19 +6,19 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import ApplicationForm from '@/components/ApplicationForm'
 import ApiCreationForm from '@/components/ApiCreationForm'
-import { getApplications } from "@/services/api";
-import { FaPlus, FaBell } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
+// import { FaBell } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
-import type { Application } from "@/types";
-import ApiKeyManagement from '@/components/ApiKeyManagement'
+// import type { Application } from "@/types";
+import ApiKeyManagement from "@/components/ApiKeyManagement";
 
 export default function ApiKeyManagementPage() {
-  const [applications, setApplications] = useState<Application[]>([]);
+  // const [applications, setApplications] = useState<Application[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showApiCreationForm, setShowApiCreationForm] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuth();
-  const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyName, setNewKeyName] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -38,16 +38,16 @@ export default function ApiKeyManagementPage() {
 
   // Handle key creation (simulated)
   const handleGenerateNewKey = () => {
-    setShowApiCreationForm(true)
-      // if (!newKeyName) return alert("Please enter a key name.");
-      // // Simulate API call to generate key
-      // alert(`Generated new key for: ${newKeyName}`);
-      // setNewKeyName('');
+    setShowApiCreationForm(true);
+    if (!newKeyName) return alert("Please enter a key name.");
+    // Simulate API call to generate key
+    alert(`Generated new key for: ${newKeyName}`);
+    setNewKeyName("");
   };
 
-//   if (!isAuthenticated) {
-//     return null;
-//   }
+  //   if (!isAuthenticated) {
+  //     return null;
+  //   }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -56,14 +56,17 @@ export default function ApiKeyManagementPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900"> API Key Management</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {" "}
+                API Key Management
+              </h1>
               <p className="text-gray-600 mt-1">
                 Create and revoke your API keys.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push("/dashboard")}
                 className="flex gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors justify-center items-center"
               >
                 <MdDashboard className="w-4 h-4" />
@@ -102,9 +105,7 @@ export default function ApiKeyManagementPage() {
           <ApiKeyManagement
           />
         )} */}
-        <ApiKeyManagement
-        handleGenerateNewKey={handleGenerateNewKey}
-          />
+        <ApiKeyManagement handleGenerateNewKey={handleGenerateNewKey} />
       </main>
     </div>
   );
