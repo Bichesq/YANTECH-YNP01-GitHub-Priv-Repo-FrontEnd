@@ -1,263 +1,322 @@
-import { ApiKey } from '@/types';
-import React, { useState } from 'react';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  getApplications,
+  getApplicationApiKeys,
+  deleteApiKey,
+} from "@/services/api";
+import type { Application, APIKeyInfo } from "@/types";
+import { TbLoader2 } from "react-icons/tb";
+import { FaTrash, FaKey, FaPlus } from "react-icons/fa";
 
 interface ComponentProps {
   handleGenerateNewKey: () => void;
+  refreshTrigger?: number;
 }
 
-const initialKeys: ApiKey[] = [
-  {
-    id: "key_1a2b3c4d5e",
-    name: "Production Server",
-    created: "2024-01-15T10:30:00Z",
-    expiry: "2025-01-15T10:30:00Z",
-    isRevoked: false,
-    createdDate: "2024-01-15"
-  },
-  {
-    id: "key_9f8e7d6c5b",
-    name: "Mobile App",
-    created: "2024-02-20T14:45:00Z",
-    expiry: "2024-08-20T14:45:00Z",
-    isRevoked: true,
-    createdDate: "2024-02-20"
-  },
-  {
-    id: "key_6g5h4i3j2k",
-    name: "Testing Environment",
-    created: "2024-03-10T09:15:00Z",
-    expiry: "2024-09-10T09:15:00Z",
-    isRevoked: false,
-    createdDate: "2024-03-10"
-  },
-  {
-    id: "key_1l2m3n4o5p",
-    name: "Third Party Integration",
-    created: "2024-04-05T16:20:00Z",
-    expiry: "2024-10-05T16:20:00Z",
-    isRevoked: false,
-    createdDate: "2024-04-05"
+const ApiKeyManagement: React.FC<ComponentProps> = ({
+  handleGenerateNewKey,
+  refreshTrigger = 0,
+}) => {
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
+  const [apiKeys, setApiKeys] = useState<APIKeyInfo[]>([]);
+  const [loadingApps, setLoadingApps] = useState(true);
+  const [loadingKeys, setLoadingKeys] = useState(false);
+  const [deletingKeyId, setDeletingKeyId] = useState<number | null>(null);
+  const [error, setError] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
+
+  // Fetch applications on component mount
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setLoadingApps(true);
+        setError("");
+        const apps = await getApplications();
+        setApplications(apps);
+
+        // Auto-select first app if available
+        if (apps.length > 0 && apps[0].id) {
+          setSelectedAppId(apps[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch applications:", err);
+        setError("Failed to load applications. Please try again.");
+      } finally {
+        setLoadingApps(false);
+      }
+    };
+
+    fetchApplications();
+  }, []);
+
+  // Fetch API keys when selected app changes or refresh is triggered
+  useEffect(() => {
+    const fetchApiKeys = async () => {
+      if (!selectedAppId) {
+        setApiKeys([]);
+        return;
+      }
+
+      try {
+        setLoadingKeys(true);
+        setError("");
+        const keys = await getApplicationApiKeys(selectedAppId);
+        setApiKeys(keys);
+      } catch (err) {
+        console.error("Failed to fetch API keys:", err);
+        setError("Failed to load API keys. Please try again.");
+        setApiKeys([]);
+      } finally {
+        setLoadingKeys(false);
+      }
+    };
+
+    fetchApiKeys();
+  }, [selectedAppId, refreshTrigger]);
+
+  const handleDeleteKey = async (keyId: number) => {
+    if (!selectedAppId) return;
+
+    if (
+      !confirm(
+        "Are you sure you want to revoke this API key? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setDeletingKeyId(keyId);
+      setError("");
+      setSuccessMessage("");
+
+      await deleteApiKey(selectedAppId, keyId);
+
+      // Remove the key from the list
+      setApiKeys((prev) => prev.filter((key) => key.id !== keyId));
+      setSuccessMessage("API key revoked successfully");
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      console.error("Failed to delete API key:", err);
+      setError(err instanceof Error ? err.message : "Failed to revoke API key");
+    } finally {
+      setDeletingKeyId(null);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "Never";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  if (loadingApps) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <TbLoader2 className="w-8 h-8 animate-spin text-primary-600" />
+        <span className="ml-3 text-gray-600">Loading applications...</span>
+      </div>
+    );
   }
-];
 
-const ApiKeyManagement: React.FC<ComponentProps> = ({handleGenerateNewKey}) => {
-  // Mock data to simulate key status and deletable keys
-  const [currentKeys, setCurrentKeys] = useState<ApiKey[]>(initialKeys);
-  const [deletableKeys, setDeletableKeys] = useState<string[]>([
-    "Kcdys",
-    "12345",
-    "12axys",
-  ]);
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-
-  // Styles for the cards
-  const cardStyle: React.CSSProperties = {
-    background: "white",
-    borderRadius: "12px",
-    padding: "25px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-    marginBottom: "20px",
-  };
-
-  // Styles for the active/revoked indicators
-  // const statusIndicatorStyle = (isRevoked: boolean): React.CSSProperties => ({
-  //   color: isRevoked ? 'red' : 'green',
-  //   marginRight: '10px',
-  //   fontWeight: 'bold',
-  // });
-
-  // Handle key selection for deletion
-  // const handleSelectKey = (keyId: string) => {
-  //   setSelectedKeys(prev =>
-  //     prev.includes(keyId)
-  //       ? prev.filter(id => id !== keyId)
-  //       : [...prev, keyId]
-  //   );
-  // };
-
-  // Handle deletion/revocation (simulated)
-  // const handleDeleteSelected = () => {
-  //   if (selectedKeys.length === 0) return;
-  //
-  //   // Simulate API call to delete/revoke keys
-  //   setDeletableKeys(deletableKeys.filter(id => !selectedKeys.includes(id)));
-  //   setCurrentKeys(currentKeys.map(key => ({
-  //       ...key,
-  //       isRevoked: selectedKeys.includes(key.id) ? true : key.isRevoked
-  //   })));
-  //
-  //   setSelectedKeys([]);
-  //   alert(`Keys ${selectedKeys.join(', ')} revoked/deleted.`);
-  // };
-
-  // 1. Functionality to Delete/Revoke a Key
-  const handleDeleteKey = (keyId: string) => {
-    // In a real app, this would be an API call to revoke the key
-    setCurrentKeys(currentKeys.filter((key) => key.id !== keyId));
-    alert(`Key ${keyId} revoked.`);
-  };
+  if (applications.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8 text-center">
+        <FaKey className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          No Applications Found
+        </h3>
+        <p className="text-gray-600 mb-4">
+          You need to register an application before you can create API keys.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-primary px-4 py-2 rounded"
+        >
+          Refresh Page
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        background: "#f4f7f9",
-        padding: "40px",
-        minHeight: "100vh",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      {/* Create New API Key Section
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: '0', fontSize: '1.2em' }}>Create New API Key</h2>
-          <button 
-            onClick={handleGenerateNewKey}
-            style={{ padding: '8px 15px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-          >
-            Generate New Key
-          </button>
-        </div>
-        <div style={{ marginTop: '20px' }}>
-          <input
-            type="text"
-            placeholder="Key Name"
-            value={newKeyName}
-            onChange={(e) => setNewKeyName(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box', marginBottom: '10px' }}
-          />
-          <button 
-            onClick={handleGenerateNewKey}
-            style={{ width: '100%', padding: '10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-          >
-            Generate New Key
-          </button>
-        </div>
-      </div> */}
-
-      {/* Current API Key Status Section */}
-      <div style={cardStyle}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            cursor: "pointer",
-          }}
-        >
-          <h2 style={{ margin: "0", fontSize: "1.2em" }}>
-            Current API Key Status
-          </h2>
-          <button
-            onClick={handleGenerateNewKey}
-            style={{
-              padding: "8px 15px",
-              background: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Generate New Key
-          </button>
-        </div>
-
-        {currentKeys.length === 0 ? (
-          <p>No active API keys.</p>
-        ) : (
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginTop: "20px",
-            }}
-          >
-            <thead>
-              <tr style={{ background: "#f0f0f0" }}>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "10px",
-                    textAlign: "left",
-                  }}
-                >
-                  Key Name
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "10px",
-                    textAlign: "left",
-                  }}
-                >
-                  Key ID
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "10px",
-                    textAlign: "left",
-                  }}
-                >
-                  Created Date
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "10px",
-                    textAlign: "left",
-                  }}
-                >
-                  Expiry Date
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "10px",
-                    textAlign: "left",
-                  }}
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentKeys.map((key) => (
-                <tr key={key.id}>
-                  <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                    {key.name}
-                  </td>
-                  <td
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "10px",
-                      fontFamily: "monospace",
-                    }}
-                  >
-                    {key.id}
-                  </td>
-                  <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                    {key.created}
-                  </td>
-                  <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                    {key.expiry}
-                  </td>
-                  <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                    <button
-                      onClick={() => handleDeleteKey(key.id)}
-                      style={{ color: "red", cursor: "pointer" }}
-                    >
-                      Revoke/Delete
-                    </button>
-                  </td>
-                </tr>
+    <div className="space-y-6">
+      {/* Application Selector */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex-1">
+            <label
+              htmlFor="app-select"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Select Application
+            </label>
+            <select
+              id="app-select"
+              value={selectedAppId || ""}
+              onChange={(e) => setSelectedAppId(Number(e.target.value))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              {applications.map((app) => (
+                <option key={app.id} value={app.id}>
+                  {app.App_name} ({app.Application})
+                </option>
               ))}
-            </tbody>
-          </table>
-        )}
+            </select>
+          </div>
+          <div className="sm:mt-6">
+            <button
+              onClick={handleGenerateNewKey}
+              className="btn-primary px-4 py-2 rounded flex items-center gap-2 w-full sm:w-auto justify-center"
+            >
+              <FaPlus className="w-4 h-4" />
+              Generate New API Key
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          {successMessage}
+        </div>
+      )}
+
+      {/* API Keys List */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">API Keys</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage API keys for the selected application
+          </p>
+        </div>
+
+        <div className="p-6">
+          {loadingKeys ? (
+            <div className="flex items-center justify-center py-8">
+              <TbLoader2 className="w-6 h-6 animate-spin text-primary-600" />
+              <span className="ml-3 text-gray-600">Loading API keys...</span>
+            </div>
+          ) : apiKeys.length === 0 ? (
+            <div className="text-center py-8">
+              <FaKey className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No API Keys
+              </h3>
+              <p className="text-gray-600 mb-4">
+                This application doesn&apos;t have any API keys yet.
+              </p>
+              <button
+                onClick={handleGenerateNewKey}
+                className="btn-primary px-4 py-2 rounded inline-flex items-center gap-2"
+              >
+                <FaPlus className="w-4 h-4" />
+                Create Your First API Key
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Expires
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Last Used
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {apiKeys.map((key) => (
+                    <tr key={key.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {key.name || "Unnamed Key"}
+                        </div>
+                        <div className="text-xs text-gray-500">ID: {key.id}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            key.is_active
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {key.is_active ? "Active" : "Revoked"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(key.created_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(key.expires_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(key.last_used_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        {key.is_active && (
+                          <button
+                            onClick={() => handleDeleteKey(key.id)}
+                            disabled={deletingKeyId === key.id}
+                            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1"
+                          >
+                            {deletingKeyId === key.id ? (
+                              <>
+                                <TbLoader2 className="w-4 h-4 animate-spin" />
+                                Revoking...
+                              </>
+                            ) : (
+                              <>
+                                <FaTrash className="w-4 h-4" />
+                                Revoke
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default ApiKeyManagement;
+

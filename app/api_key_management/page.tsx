@@ -10,15 +10,13 @@ import { FaPlus } from "react-icons/fa";
 // import { FaBell } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 // import type { Application } from "@/types";
-import ApiKeyManagement from "@/components/ApiKeyManagement";
+import ApiKeyManagement from '@/components/ApiKeyManagement'
 
 export default function ApiKeyManagementPage() {
-  // const [applications, setApplications] = useState<Application[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showApiCreationForm, setShowApiCreationForm] = useState(false);
-  // const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { isAuthenticated } = useAuth();
-  const [newKeyName, setNewKeyName] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -34,15 +32,12 @@ export default function ApiKeyManagementPage() {
 
   const handleApiCreated = () => {
     setShowApiCreationForm(false);
+    // Trigger refresh of API keys list
+    setRefreshTrigger((prev) => prev + 1);
   };
 
-  // Handle key creation (simulated)
   const handleGenerateNewKey = () => {
     setShowApiCreationForm(true);
-    if (!newKeyName) return alert("Please enter a key name.");
-    // Simulate API call to generate key
-    alert(`Generated new key for: ${newKeyName}`);
-    setNewKeyName("");
   };
 
   //   if (!isAuthenticated) {
@@ -97,15 +92,10 @@ export default function ApiKeyManagementPage() {
           />
         )}
 
-        {/* {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-          </div>
-        ) : (
-          <ApiKeyManagement
-          />
-        )} */}
-        <ApiKeyManagement handleGenerateNewKey={handleGenerateNewKey} />
+        <ApiKeyManagement
+          handleGenerateNewKey={handleGenerateNewKey}
+          refreshTrigger={refreshTrigger}
+        />
       </main>
     </div>
   );

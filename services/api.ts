@@ -12,12 +12,12 @@ import type {
 
 // Call backend services directly (requires CORS configuration on backend)
 const APPS_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://98.81.247.123:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://54.89.161.129:80";
 const REQUESTOR_BASE_URL =
-  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://98.81.247.123:80";
+  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.89.161.129:80";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://98.81.247.123:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://54.89.161.129:80";
 
 // Test backend connection
 export const testConnection = async (): Promise<boolean> => {
@@ -244,14 +244,42 @@ export const getNotifications = async (
 };
 
 export const getApplicationApiKeys = async (
-  applicationId: string
+  applicationId: number
 ): Promise<APIKeyInfo[]> => {
+  console.log(
+    "[getApplicationApiKeys] Fetching API keys for app:",
+    applicationId
+  );
+
   try {
     const response = await api.get(`/app/${applicationId}/api-keys`);
+    console.log("[getApplicationApiKeys] API keys fetched:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("[getApplicationApiKeys] Error:", error);
-    // Return empty array if API keys endpoint fails
-    return [];
+    throw new Error(
+      error.response?.data?.detail ||
+        error.message ||
+        "Failed to fetch API keys"
+    );
+  }
+};
+
+export const deleteApiKey = async (
+  appId: number,
+  keyId: number
+): Promise<void> => {
+  console.log("[deleteApiKey] Deleting API key:", { appId, keyId });
+
+  try {
+    await api.delete(`/app/${appId}/api-key/${keyId}`);
+    console.log("[deleteApiKey] API key deleted successfully");
+  } catch (error: any) {
+    console.error("[deleteApiKey] Error:", error);
+    throw new Error(
+      error.response?.data?.detail ||
+        error.message ||
+        "Failed to delete API key"
+    );
   }
 };

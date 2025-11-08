@@ -27,7 +27,13 @@ export default function ApplicationList({
       await Promise.all(
         applications.map(async (app) => {
           try {
-            const apiKeys = await getApplicationApiKeys(app.Application);
+            // Skip if app doesn't have an ID
+            if (!app.id) {
+              statuses[app.Application] = false;
+              return;
+            }
+
+            const apiKeys = await getApplicationApiKeys(app.id);
             // Application is active if it has at least one non-revoked API key
             const hasActiveKey = apiKeys.some((key) => key.is_active);
             statuses[app.Application] = hasActiveKey;
