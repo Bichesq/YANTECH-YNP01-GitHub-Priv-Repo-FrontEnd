@@ -6,7 +6,7 @@ import {
   getApplicationApiKeys,
   deleteApiKey,
 } from "@/services/api";
-import type { Application, APIKeyInfo } from "@/types";
+import type { APIKeyInfo, ApplicationResponse } from "@/types";
 import { TbLoader2 } from "react-icons/tb";
 import { FaTrash, FaKey, FaPlus } from "react-icons/fa";
 
@@ -19,8 +19,9 @@ const ApiKeyManagement: React.FC<ComponentProps> = ({
   handleGenerateNewKey,
   refreshTrigger = 0,
 }) => {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+  const [appId, setAppId] = useState<number>(0);
   const [apiKeys, setApiKeys] = useState<APIKeyInfo[]>([]);
   const [loadingApps, setLoadingApps] = useState(true);
   const [loadingKeys, setLoadingKeys] = useState(false);
@@ -39,7 +40,7 @@ const ApiKeyManagement: React.FC<ComponentProps> = ({
 
         // Auto-select first app if available
         if (apps.length > 0 && apps[0].id) {
-          setSelectedAppId(apps[0].id);
+          setAppId(apps[0].id);
         }
       } catch (err) {
         console.error("Failed to fetch applications:", err);
@@ -55,7 +56,7 @@ const ApiKeyManagement: React.FC<ComponentProps> = ({
   // Fetch API keys when selected app changes or refresh is triggered
   useEffect(() => {
     const fetchApiKeys = async () => {
-      if (!selectedAppId) {
+      if (!appId) {
         setApiKeys([]);
         return;
       }
@@ -63,8 +64,10 @@ const ApiKeyManagement: React.FC<ComponentProps> = ({
       try {
         setLoadingKeys(true);
         setError("");
-        const keys = await getApplicationApiKeys(selectedAppId);
+        console.log("Fetching API keys for app:", appId);
+        const keys = await getApplicationApiKeys(appId);
         setApiKeys(keys);
+        console.log("API keys fetched:", keys);
       } catch (err) {
         console.error("Failed to fetch API keys:", err);
         setError("Failed to load API keys. Please try again.");
@@ -75,10 +78,10 @@ const ApiKeyManagement: React.FC<ComponentProps> = ({
     };
 
     fetchApiKeys();
-  }, [selectedAppId, refreshTrigger]);
+  }, [selectedAppId, appId, refreshTrigger]);
 
   const handleDeleteKey = async (keyId: number) => {
-    if (!selectedAppId) return;
+    if (!appId) return;
 
     if (
       !confirm(
@@ -93,7 +96,7 @@ const ApiKeyManagement: React.FC<ComponentProps> = ({
       setError("");
       setSuccessMessage("");
 
-      await deleteApiKey(selectedAppId, keyId);
+      await deleteApiKey(appId, keyId);
 
       // Remove the key from the list
       setApiKeys((prev) => prev.filter((key) => key.id !== keyId));
@@ -163,13 +166,13 @@ const ApiKeyManagement: React.FC<ComponentProps> = ({
             </label>
             <select
               id="app-select"
-              value={selectedAppId || ""}
-              onChange={(e) => setSelectedAppId(Number(e.target.value))}
+              value={appId || 0}
+              onChange={(e) => setAppId(parseInt(e.target.value))}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               {applications.map((app) => (
-                <option key={app.id} value={app.id}>
-                  {app.App_name} ({app.Application})
+                <option key={app.application_id} value={app.id}>
+                  {app.name} ({app.application_id})
                 </option>
               ))}
             </select>

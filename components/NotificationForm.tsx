@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { requestNotification, getApplications } from '@/services/api'
 import { RxCross2 } from "react-icons/rx";
 import { TbLoader2 } from "react-icons/tb";
-import type { NotificationRequest, Application } from '@/types'
+import type { NotificationRequest, ApplicationResponse } from '@/types'
 
 interface NotificationFormProps {
   onClose: () => void
@@ -12,7 +12,7 @@ interface NotificationFormProps {
 }
 
 export default function NotificationForm({ onClose, onSuccess }: NotificationFormProps) {
-  const [applications, setApplications] = useState<Application[]>([])
+  const [applications, setApplications] = useState<ApplicationResponse[]>([])
   const [formData, setFormData] = useState<NotificationRequest>({
     Application: "",
     Recipient: "",
@@ -180,8 +180,8 @@ export default function NotificationForm({ onClose, onSuccess }: NotificationFor
               >
                 <option value="">Select Application</option>
                 {applications.map((app) => (
-                  <option key={app.Application} value={app.Application}>
-                    {app.App_name} ({app.Application})
+                  <option key={app.application_id} value={app.application_id}>
+                    {app.name} ({app.application_id})
                   </option>
                 ))}
               </select>

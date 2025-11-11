@@ -67,23 +67,23 @@ export default function ApiKeyManagementPage() {
                 <MdDashboard className="w-4 h-4" />
                 Back to Dashboard
               </button>
-              <button
+              {/* <button
                 onClick={() => setShowForm(true)}
                 className="flex gap-2 btn-primary p-2 rounded mx-auto w-[80%] justify-center sm:w-auto "
               >
                 <FaPlus className="w-4 h-4 mt-1" />
                 Register Application
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
 
-        {showForm && (
+        {/* {showForm && (
           <ApplicationForm
             onClose={() => setShowForm(false)}
             onSuccess={handleApplicationCreated}
           />
-        )}
+        )} */}
 
         {showApiCreationForm && (
           <ApiCreationForm
@@ -95,7 +95,7 @@ export default function ApiKeyManagementPage() {
         <ApiKeyManagement
           handleGenerateNewKey={handleGenerateNewKey}
           refreshTrigger={refreshTrigger}
-        />
+        /> 
       </main>
     </div>
   );

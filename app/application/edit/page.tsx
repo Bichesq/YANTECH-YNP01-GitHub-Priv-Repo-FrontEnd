@@ -6,13 +6,13 @@ import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/components/Header'
 import { getApplications, updateApplication } from '@/services/api'
 import { FaArrowLeft } from "react-icons/fa"
-import type { Application, ApplicationFormData } from '@/types'
+import type { ApplicationFormData, ApplicationResponse } from '@/types'
 
 function EditApplicationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { isAuthenticated } = useAuth()
-  const [application, setApplication] = useState<Application | null>(null)
+  const [application, setApplication] = useState<ApplicationResponse | null>(null)
   const [formData, setFormData] = useState<ApplicationFormData>({
     App_name: '',
     Application: '',
@@ -32,14 +32,14 @@ function EditApplicationContent() {
 
     try {
       const apps = await getApplications();
-      const app = apps.find((a: Application) => a.Application === id);
+      const app = apps.find((a: ApplicationResponse) => a.application_id === id);
       if (app) {
         setApplication(app);
         setFormData({
-          App_name: app.App_name,
-          Application: app.Application,
-          Email: app.Email,
-          Domain: app.Domain,
+          App_name: app.name,
+          Application: app.application_id,
+          Email: app.email,
+          Domain: app.domain,
         });
       }
     } catch (error) {

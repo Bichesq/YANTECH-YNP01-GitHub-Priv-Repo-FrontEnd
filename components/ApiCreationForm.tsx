@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createApiKey, getApplications } from "@/services/api";
 import { RxCross2 } from "react-icons/rx";
 import { TbLoader2 } from "react-icons/tb";
-import type { ApiCreationFormData, Application } from "@/types";
+import type { ApiCreationFormData, Application, ApplicationResponse } from "@/types";
 
 interface ApiCreationFormProps {
   onClose: () => void;
@@ -20,7 +20,7 @@ export default function ApiCreationForm({
     app_id: 0,
     expires_at: null,
   });
-  const [applications, setApplications] = useState<Application[]>([]);
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingApps, setLoadingApps] = useState(true);
   const [error, setError] = useState("");
@@ -135,7 +135,7 @@ export default function ApiCreationForm({
                   <option value={0}>-- Select an application --</option>
                   {applications.map((app) => (
                     <option key={app.id} value={app.id}>
-                      {app.App_name} ({app.Application})
+                      {app.name} ({app.application_id})
                     </option>
                   ))}
                 </select>

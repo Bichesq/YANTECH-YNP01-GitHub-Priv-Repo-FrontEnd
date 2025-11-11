@@ -9,7 +9,7 @@ import {
   IoGlobeSharp,
 } from "react-icons/io5";
 import { FaEdit, FaCircle } from "react-icons/fa";
-import type { Application, ApplicationListProps } from "@/types";
+import type { ApplicationResponse, ApplicationListProps } from "@/types";
 import { deleteApplication, getApplicationApiKeys } from "@/services/api";
 
 export default function ApplicationList({
@@ -28,21 +28,21 @@ export default function ApplicationList({
         applications.map(async (app) => {
           try {
             // Skip if app doesn't have an ID
-            if (!app.id) {
-              statuses[app.Application] = false;
+            if (!app.application_id) {
+              statuses[app.application_id] = false;
               return;
             }
 
             const apiKeys = await getApplicationApiKeys(app.id);
             // Application is active if it has at least one non-revoked API key
             const hasActiveKey = apiKeys.some((key) => key.is_active);
-            statuses[app.Application] = hasActiveKey;
+            statuses[app.application_id] = hasActiveKey;
           } catch (error) {
             console.error(
-              `Failed to fetch API keys for ${app.Application}:`,
+              `Failed to fetch API keys for ${app.name}:`,
               error
             );
-            statuses[app.Application] = false;
+            statuses[app.application_id] = false;
           }
         })
       );
@@ -55,18 +55,18 @@ export default function ApplicationList({
     }
   }, [applications]);
 
-  const handleViewDetails = (app: Application) => {
-    router.push(`/application?id=${app.Application}`);
+  const handleViewDetails = (app: ApplicationResponse) => {
+    router.push(`/application?id=${app.application_id}`);
   };
 
-  const handleEdit = (app: Application) => {
-    router.push(`/application/edit?id=${app.Application}`);
+  const handleEdit = (app: ApplicationResponse) => {
+    router.push(`/application/edit?id=${app.application_id}`);
   };
 
-  const handleDelete = async (app: Application) => {
-    if (window.confirm(`Are you sure you want to delete ${app.App_name}?`)) {
+  const handleDelete = async (app: ApplicationResponse) => {
+    if (window.confirm(`Are you sure you want to delete ${app.name}?`)) {
       try {
-        await deleteApplication(app.Application);
+        await deleteApplication(app.application_id);
         onUpdate(); // Refresh the applications list
       } catch (error) {
         console.error("Failed to delete application:", error);
@@ -125,19 +125,19 @@ export default function ApplicationList({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {applications.map((app) => (
         <div
-          key={app.Application}
+          key={app.application_id}
           className="card hover:shadow-md transition-shadow duration-200 p-3 group"
         >
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
-                  {app.App_name}
+                  {app.name}
                 </h3>
-                {getStatusBadge(app.Application)}
+                {getStatusBadge(app.application_id)}
               </div>
               <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">
-                {app.Application}
+                {app.application_id}
               </span>
             </div>
           </div>
@@ -145,11 +145,11 @@ export default function ApplicationList({
           <div className="space-y-3 mb-6">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <IoMailSharp className="w-4 h-4" />
-              <span className="truncate">{app.Email}</span>
+              <span className="truncate">{app.email}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <IoGlobeSharp className="w-4 h-4" />
-              <span className="truncate">{app.Domain}</span>
+              <span className="truncate">{app.domain}</span>
             </div>
           </div>
 

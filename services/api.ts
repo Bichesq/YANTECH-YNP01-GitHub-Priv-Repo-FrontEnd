@@ -8,16 +8,18 @@ import type {
   NotificationResponse,
   APIKeyInfo,
   APIKeyResponse,
+  ApplicationResponse,
 } from "@/types";
+import { getSessionToken, clearSession } from "@/contexts/AuthContext";
 
 // Call backend services directly (requires CORS configuration on backend)
 const APPS_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://54.89.161.129:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://54.237.230.46:80";
 const REQUESTOR_BASE_URL =
-  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.89.161.129:80";
+  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.237.230.46:80";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://54.89.161.129:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://54.237.230.46:80";
 
 // Test backend connection
 export const testConnection = async (): Promise<boolean> => {
@@ -49,7 +51,65 @@ const apiRequestor = axios.create({
   },
 });
 
-export const getApplications = async (): Promise<Application[]> => {
+// Add request interceptor to include authentication token
+api.interceptors.request.use(
+  (config) => {
+    const token = getSessionToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+apiRequestor.interceptors.request.use(
+  (config) => {
+    const token = getSessionToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle authentication errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Session expired or invalid, clear session and redirect to login
+      console.log("⚠️ Authentication failed, clearing session");
+      clearSession();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+apiRequestor.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Session expired or invalid, clear session and redirect to login
+      console.log("⚠️ Authentication failed, clearing session");
+      clearSession();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export const getApplications = async (): Promise<ApplicationResponse[]> => {
   console.log("[getApplications] Sending GET request to /apps");
 
   try {
@@ -76,7 +136,7 @@ export const getApplications = async (): Promise<Application[]> => {
 
 export const createApplication = async (
   applicationData: ApplicationFormData
-): Promise<Application> => {
+): Promise<ApplicationResponse> => {
   console.debug("[createApplication] Input data:", applicationData);
 
   try {
@@ -244,7 +304,7 @@ export const getNotifications = async (
 };
 
 export const getApplicationApiKeys = async (
-  applicationId: number
+  applicationId: number | undefined
 ): Promise<APIKeyInfo[]> => {
   console.log(
     "[getApplicationApiKeys] Fetching API keys for app:",

@@ -8,13 +8,13 @@ import { getApplications } from '@/services/api'
 import { FaArrowLeft, FaBell } from "react-icons/fa";
 import { IoMailSharp } from "react-icons/io5";
 import { LuMessageSquare } from "react-icons/lu";
-import type { Application, Notification } from '@/types'
+import type { Application, ApplicationResponse, Notification } from '@/types'
 
 function ApplicationDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const [application, setApplication] = useState<Application | null>(null);
+  const [application, setApplication] = useState<ApplicationResponse | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +34,7 @@ function ApplicationDetailContent() {
     const loadApplicationDetail = async () => {
       try {
         const apps = await getApplications();
-        const app = apps.find((a: Application) => a.Application === id);
+        const app = apps.find((a: ApplicationResponse) => a.application_id === id);
         setApplication(app || null);
 
         // Mock notification data - replace with real API call
@@ -140,7 +140,7 @@ function ApplicationDetailContent() {
         <div className="mb-8">
           <button
             onClick={() => router.push("/dashboard")}
-            className="btn-secondary mb-4"
+            className="flex btn-secondary mb-4 border rounded"
           >
             <FaArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -148,10 +148,10 @@ function ApplicationDetailContent() {
 
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-gray-900">
-              {application.App_name}
+              {application.name}
             </h1>
             <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
-              {application.Application}
+              {application.application_id}
             </span>
           </div>
         </div>
@@ -159,7 +159,7 @@ function ApplicationDetailContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Application Info */}
           <div className="lg:col-span-1">
-            <div className="card">
+            <div className="card p-3">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
                 Application Details
               </h2>
@@ -170,7 +170,7 @@ function ApplicationDetailContent() {
                     Application ID
                   </label>
                   <p className="text-gray-900 font-mono text-sm">
-                    {application.Application}
+                    {application.application_id}
                   </p>
                 </div>
 
@@ -178,14 +178,14 @@ function ApplicationDetailContent() {
                   <label className="block text-sm font-medium text-gray-500 mb-1">
                     Email
                   </label>
-                  <p className="text-gray-900">{application.Email}</p>
+                  <p className="text-gray-900">{application.email}</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">
                     Domain
                   </label>
-                  <p className="text-gray-900">{application.Domain}</p>
+                  <p className="text-gray-900">{application.domain}</p>
                 </div>
 
                 {application["SES-Domain-ARN"] && (
@@ -215,7 +215,7 @@ function ApplicationDetailContent() {
 
           {/* Notifications */}
           <div className="lg:col-span-2">
-            <div className="card">
+            <div className="card p-3">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">
                   Notification History

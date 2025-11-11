@@ -10,6 +10,18 @@ export interface Application {
   is_active?: boolean;
 }
 
+export interface ApplicationResponse {
+  id?: number; // Database ID from backend
+  name: string;
+  application_id: string;
+  email: string;
+  domain: string;
+  "SES-Domain-ARN"?: string;
+  "SNS-Topic-ARN"?: string;
+  api_keys?: APIKeyInfo[];
+  is_active?: boolean;
+}
+
 export interface ApplicationFormData {
   App_name: string;
   Application: string;
@@ -67,11 +79,37 @@ export interface NotificationResponse {
 }
 
 export interface User {
-  username: string
+  username: string;
+  email?: string;
+  role?: string;
+  id?: string | number;
+}
+
+export interface AuthSession {
+  token: string;
+  user: User;
+  expiresAt: number; // Unix timestamp in milliseconds
+  refreshToken?: string;
+  issuedAt: number; // Unix timestamp in milliseconds
+}
+
+export interface SessionData {
+  session: AuthSession | null;
+  isValid: boolean;
+  isExpired: boolean;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  token?: string;
+  user?: User;
+  expiresIn?: number; // Duration in seconds
+  refreshToken?: string;
+  message?: string;
 }
 
 export interface ApplicationListProps {
-  applications: Application[];
+  applications: ApplicationResponse[];
   onUpdate: () => void;
 }
 

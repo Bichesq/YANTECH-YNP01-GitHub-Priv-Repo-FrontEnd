@@ -10,10 +10,10 @@ import NotificationForm from "@/components/NotificationForm";
 import { getApplications } from "@/services/api";
 import { FaPlus, FaBell } from "react-icons/fa";
 import { MdManageAccounts } from "react-icons/md";
-import type { Application } from "@/types";
+import type { ApplicationResponse } from "@/types";
 
 export default function DashboardPage() {
-  const [applications, setApplications] = useState<Application[]>([]);
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showNotificationForm, setShowNotificationForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -84,7 +84,7 @@ export default function DashboardPage() {
                 className="flex gap-2 btn-secondary p-2 rounded mx-auto w-[80%] justify-center sm:w-auto "
               >
                 <MdManageAccounts className="w-4 h-4 mt-1" />
-                Manage APIs
+                Manage API Keys
               </button>
             </div>
           </div>
