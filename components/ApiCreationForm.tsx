@@ -78,9 +78,9 @@ export default function ApiCreationForm({
       }
 
       // Call onSuccess after a short delay to allow user to see the key
-      setTimeout(() => {
-        onSuccess();
-      }, 100);
+      // setTimeout(() => {
+      //   onSuccess();
+      // }, 1000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -183,6 +183,9 @@ export default function ApiCreationForm({
               <button
                 type="button"
                 onClick={() => {
+                  onClose();
+                  onSuccess();
+                  // Copy to clipboard
                   navigator.clipboard.writeText(apiKeyResult);
                   alert("API key copied to clipboard!");
                 }}

@@ -10,6 +10,9 @@ import { IoMailSharp } from "react-icons/io5";
 import { LuMessageSquare } from "react-icons/lu";
 import type { Application, ApplicationResponse, Notification } from '@/types'
 
+// ⚠️ AUTH BYPASS FLAG - FOR DEVELOPMENT ONLY
+const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true';
+
 function ApplicationDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -21,7 +24,8 @@ function ApplicationDetailContent() {
   const id = searchParams.get("id");
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // ⚠️ AUTH BYPASS: Skip authentication check if auth is disabled
+    if (!AUTH_DISABLED && !isAuthenticated) {
       router.push("/login");
       return;
     }

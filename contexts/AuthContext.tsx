@@ -19,6 +19,16 @@ import {
   getSessionUser,
 } from "@/utils/sessionManager";
 
+// ⚠️ AUTH BYPASS FLAG - FOR DEVELOPMENT ONLY
+// When true, all authentication checks are bypassed
+// To disable auth: Set NEXT_PUBLIC_DISABLE_AUTH=true in .env.local
+// To re-enable auth: Set NEXT_PUBLIC_DISABLE_AUTH=false or remove the line
+const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true';
+
+if (AUTH_DISABLED) {
+  console.warn('🚨 AUTHENTICATION IS DISABLED - Development mode only!');
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
@@ -44,32 +54,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isSessionExpiring, setIsSessionExpiring] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  /**
+   * Handle user logout
+   */
+  const handleLogout = useCallback(() => {
+    clearSession();
+    setIsAuthenticated(false);
+    setUser(null);
+    setSession(null);
+    setIsSessionExpiring(false);
+    console.log("✅ Logout successful, session cleared");
+  }, []);
 
   /**
    * Initialize session from storage on mount
    */
   const initializeSession = useCallback(() => {
+    // ⚠️ AUTH BYPASS: Skip session initialization if auth is disabled
+    if (AUTH_DISABLED) {
+      setIsAuthenticated(true);
+      setUser({
+        id: 'dev-user',
+        username: 'dev-user',
+        email: 'dev@example.com',
+        role: 'admin',
+      });
+      setIsInitialized(true);
+      console.log('🚨 Auth disabled - bypassing session check');
+      return;
+    }
+
+    // CRITICAL: Only run in browser environment
+    if (typeof window === "undefined") {
+      console.warn("[Auth] Skipping session initialization - SSR context");
+      return;
+    }
+
     const sessionData = getSessionData();
 
     if (sessionData.isValid && sessionData.session) {
       setIsAuthenticated(true);
       setUser(sessionData.session.user);
       setSession(sessionData.session);
+      setIsInitialized(true);
       console.log("✅ Session restored from storage");
     } else if (sessionData.isExpired) {
       console.log("⚠️ Session expired, clearing authentication");
       handleLogout();
+      setIsInitialized(true);
     } else {
+      setIsInitialized(true);
       console.log("ℹ️ No valid session found");
     }
-  }, []);
+  }, [handleLogout]);
+
+  /**
+   * Initialize session on mount (client-side only)
+   */
+  useEffect(() => {
+    // Only run once on mount, after hydration
+    initializeSession();
+  }, []); // Empty deps - run once on mount
 
   /**
    * Check session expiration periodically
    */
   useEffect(() => {
-    // Initialize session on mount
-    initializeSession();
+    // Only start interval after initialization
+    if (!isInitialized) {
+      return;
+    }
 
     // Check session expiration every minute
     const intervalId = setInterval(() => {
@@ -90,13 +146,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 60000); // Check every minute
 
     return () => clearInterval(intervalId);
-  }, [initializeSession]);
+  }, [isInitialized, handleLogout]);
 
   /**
    * Handle user login
    */
   const login = (username: string, password: string): boolean => {
     try {
+      // ⚠️ AUTH BYPASS: Auto-login if auth is disabled
+      if (AUTH_DISABLED) {
+        setIsAuthenticated(true);
+        setUser({
+          id: 'dev-user',
+          username: username || 'dev-user',
+          email: 'dev@example.com',
+          role: 'admin',
+        });
+        console.log('🚨 Auth disabled - auto-login successful');
+        return true;
+      }
+
       // Simple auth - replace with real authentication API call
       if (username === "admin" && password === "admin123") {
         const userData: User = {
@@ -124,7 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("✅ Login successful, session created");
           return true;
         } else {
-          console.error("❌ Failed to save session");
+          console.error("❌ Failed to save session to localStorage");
           return false;
         }
       }
@@ -136,18 +205,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
   };
-
-  /**
-   * Handle user logout
-   */
-  const handleLogout = useCallback(() => {
-    clearSession();
-    setIsAuthenticated(false);
-    setUser(null);
-    setSession(null);
-    setIsSessionExpiring(false);
-    console.log("✅ Logout successful, session cleared");
-  }, []);
 
   const logout = () => {
     handleLogout();

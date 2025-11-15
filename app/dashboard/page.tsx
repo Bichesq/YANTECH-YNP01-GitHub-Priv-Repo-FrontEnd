@@ -12,6 +12,9 @@ import { FaPlus, FaBell } from "react-icons/fa";
 import { MdManageAccounts } from "react-icons/md";
 import type { ApplicationResponse } from "@/types";
 
+// ⚠️ AUTH BYPASS FLAG - FOR DEVELOPMENT ONLY
+const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true';
+
 export default function DashboardPage() {
   const [applications, setApplications] = useState<ApplicationResponse[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -21,7 +24,8 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // ⚠️ AUTH BYPASS: Skip authentication check if auth is disabled
+    if (!AUTH_DISABLED && !isAuthenticated) {
       router.push("/login");
       return;
     }

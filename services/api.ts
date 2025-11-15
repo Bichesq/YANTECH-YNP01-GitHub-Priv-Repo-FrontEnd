@@ -12,14 +12,17 @@ import type {
 } from "@/types";
 import { getSessionToken, clearSession } from "@/contexts/AuthContext";
 
+// ⚠️ AUTH BYPASS FLAG - FOR DEVELOPMENT ONLY
+const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true';
+
 // Call backend services directly (requires CORS configuration on backend)
 const APPS_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://54.237.230.46:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://13.218.153.136:80";
 const REQUESTOR_BASE_URL =
-  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://54.237.230.46:80";
+  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://13.218.153.136:80";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://54.237.230.46:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://13.218.153.136:80";
 
 // Test backend connection
 export const testConnection = async (): Promise<boolean> => {
@@ -82,7 +85,8 @@ apiRequestor.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // ⚠️ AUTH BYPASS: Skip 401 redirect if auth is disabled
+    if (error.response?.status === 401 && !AUTH_DISABLED) {
       // Session expired or invalid, clear session and redirect to login
       console.log("⚠️ Authentication failed, clearing session");
       clearSession();
@@ -97,7 +101,8 @@ api.interceptors.response.use(
 apiRequestor.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // ⚠️ AUTH BYPASS: Skip 401 redirect if auth is disabled
+    if (error.response?.status === 401 && !AUTH_DISABLED) {
       // Session expired or invalid, clear session and redirect to login
       console.log("⚠️ Authentication failed, clearing session");
       clearSession();

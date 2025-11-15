@@ -29,13 +29,18 @@ export const setStorageItem = <T>(
 ): boolean => {
   try {
     const storage = getStorage(type);
-    if (!storage) return false;
+    if (!storage) {
+      console.error(
+        `[Storage] Storage not available - SSR context or disabled`
+      );
+      return false;
+    }
 
     const serializedValue = JSON.stringify(value);
     storage.setItem(key, serializedValue);
     return true;
   } catch (error) {
-    console.error(`Error setting ${type}Storage item:`, error);
+    console.error(`[Storage] Error setting ${type}Storage item:`, error);
     return false;
   }
 };

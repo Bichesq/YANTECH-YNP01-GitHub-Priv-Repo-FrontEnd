@@ -4,12 +4,16 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
+// ⚠️ AUTH BYPASS FLAG - FOR DEVELOPMENT ONLY
+const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true';
+
 export default function HomePage() {
   const { isAuthenticated } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // ⚠️ AUTH BYPASS: Always redirect to dashboard if auth is disabled
+    if (AUTH_DISABLED || isAuthenticated) {
       router.push('/dashboard')
     } else {
       router.push('/login')

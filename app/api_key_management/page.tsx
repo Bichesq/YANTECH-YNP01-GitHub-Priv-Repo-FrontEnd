@@ -12,6 +12,9 @@ import { MdDashboard } from "react-icons/md";
 // import type { Application } from "@/types";
 import ApiKeyManagement from '@/components/ApiKeyManagement'
 
+// ⚠️ AUTH BYPASS FLAG - FOR DEVELOPMENT ONLY
+const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true';
+
 export default function ApiKeyManagementPage() {
   const [showForm, setShowForm] = useState(false);
   const [showApiCreationForm, setShowApiCreationForm] = useState(false);
@@ -20,7 +23,8 @@ export default function ApiKeyManagementPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // ⚠️ AUTH BYPASS: Skip authentication check if auth is disabled
+    if (!AUTH_DISABLED && !isAuthenticated) {
       router.push("/login");
       return;
     }
