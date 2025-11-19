@@ -17,12 +17,12 @@ const AUTH_DISABLED = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true';
 
 // Call backend services directly (requires CORS configuration on backend)
 const APPS_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://13.218.153.136:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://13.221.91.36:80";
 const REQUESTOR_BASE_URL =
-  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://13.218.153.136:80";
+  process.env.NEXT_PUBLIC_REQUESTOR_URL || "http://13.221.91.36:80";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://13.218.153.136:80";
+  process.env.NEXT_PUBLIC_API_URL || "http://13.221.91.36:80";
 
 // Test backend connection
 export const testConnection = async (): Promise<boolean> => {
@@ -139,9 +139,7 @@ export const getApplications = async (): Promise<ApplicationResponse[]> => {
   }
 };
 
-export const createApplication = async (
-  applicationData: ApplicationFormData
-): Promise<ApplicationResponse> => {
+export const createApplication = async (applicationData: ApplicationFormData): Promise<ApplicationResponse> => {
   console.debug("[createApplication] Input data:", applicationData);
 
   try {

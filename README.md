@@ -35,10 +35,17 @@ NEXT_PUBLIC_API_URL=http://your-backend-api-url:80
 NEXT_PUBLIC_REQUESTOR_URL=http://your-requestor-api-url:80
 ```
 
+**Example Configuration:**
+```env
+NEXT_PUBLIC_API_URL=http://13.221.91.36:80
+NEXT_PUBLIC_REQUESTOR_URL=http://13.221.91.36:80
+```
+
 **Important:**
 - Variables must use the `NEXT_PUBLIC_` prefix to be accessible in the browser
-- These values are embedded at build time, not runtime
-- Update these URLs to point to your backend EC2 instances
+- These values are embedded at **build time**, not runtime
+- Update these URLs to point to your backend EC2 instance(s)
+- The backend is deployed as a Docker container on EC2 (see backend deployment section)
 
 3. **Start development server:**
 ```bash
@@ -250,18 +257,34 @@ netlify deploy
 
 ## 🔗 API Integration
 
-The frontend makes direct API calls to backend EC2 services:
+### Architecture Overview
 
-- **Apps Service**: Configured via `NEXT_PUBLIC_API_URL`
-- **Requestor Service**: Configured via `NEXT_PUBLIC_REQUESTOR_URL`
+The application uses a **decoupled architecture**:
+- **Frontend**: Static files hosted on AWS S3 (this application)
+- **Backend**: Docker container running on AWS EC2 instance
 
-**Key Endpoints:**
-  - `GET /applications` - List applications
-  - `POST /applications` - Create application
-  - `PUT /applications/:id` - Update application
-  - `DELETE /applications/:id` - Delete application
-  - `POST /applications/:id/api-keys` - Create API key
-  - `GET /applications/:id/api-keys` - List API keys
+The frontend makes direct API calls to the backend EC2 service:
+
+- **Apps Service**: Configured via `NEXT_PUBLIC_API_URL` (default: `http://13.221.91.36:80`)
+- **Requestor Service**: Configured via `NEXT_PUBLIC_REQUESTOR_URL` (default: `http://13.221.91.36:80`)
+
+### Backend Deployment
+
+The backend service (`test-frontend-backend`) runs as a Docker container on an EC2 instance:
+- **Technology**: FastAPI (Python)
+- **Deployment**: Docker container on EC2
+- **Port**: 80 (exposed via EC2 security group)
+- **Health Check**: `GET /health`
+
+### Key API Endpoints
+
+  - `GET /apps` - List all applications
+  - `POST /app` - Create new application
+  - `PUT /app/:id` - Update application
+  - `DELETE /app/:id` - Delete application
+  - `POST /app/:id/api-key` - Create API key
+  - `GET /app/:id/api-keys` - List API keys for application
+  - `POST /request` - Send notification request
 
 **Important:** Backend services must have CORS enabled to accept requests from the S3/CloudFront origin.
 
@@ -371,6 +394,62 @@ curl -H "Origin: https://your-cloudfront-domain.com" \
 - Tailwind CSS purged for minimal CSS bundle size
 - All assets cached at CDN edge locations
 
+## 🏗️ Complete Deployment Architecture
+
+### Current Production Setup
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     AWS Cloud Infrastructure                 │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌──────────────────┐              ┌────────────────────┐   │
+│  │   AWS S3 Bucket  │              │   AWS EC2 Instance │   │
+│  │  (Static Site)   │◄────CORS────►│  (Docker Backend)  │   │
+│  │                  │              │                    │   │
+│  │  - HTML/CSS/JS   │              │  - FastAPI App     │   │
+│  │  - Next.js Build │              │  - Port 80         │   │
+│  │  - Public Access │              │  - Health Check    │   │
+│  └──────────────────┘              └────────────────────┘   │
+│         │                                    │               │
+│         │                                    │               │
+│  ┌──────▼──────────┐                        │               │
+│  │   CloudFront    │                        │               │
+│  │  (Optional CDN) │                        │               │
+│  │  - HTTPS/SSL    │                        │               │
+│  │  - Custom Domain│                        │               │
+│  └─────────────────┘                        │               │
+│                                              │               │
+│                                    ┌─────────▼──────────┐   │
+│                                    │  AWS Services      │   │
+│                                    │  - SES (Email)     │   │
+│                                    │  - SNS (SMS/Push)  │   │
+│                                    └────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Component Responsibilities
+
+**Frontend (S3 Static Site):**
+- User interface and client-side logic
+- Authentication state management (localStorage)
+- Direct API calls to backend EC2
+- Static asset serving
+- Cost: ~$1-2/month
+
+**Backend (EC2 Docker Container):**
+- RESTful API endpoints
+- Business logic and data processing
+- AWS service integration (SES, SNS)
+- Database operations
+- CORS configuration for S3 origin
+- Cost: ~$10-20/month (t2.micro/t3.small)
+
+**Communication:**
+- Frontend → Backend: Direct HTTP/HTTPS calls
+- Backend → AWS Services: AWS SDK
+- CORS headers required on backend for cross-origin requests
+
 ## 🏛️ Architecture Migration
 
 This application has been migrated from a **server-based Docker container deployment** to **AWS S3 static hosting**.
@@ -417,15 +496,20 @@ All environment variables must use the `NEXT_PUBLIC_` prefix to be accessible in
 
 ```env
 # .env.local
-NEXT_PUBLIC_API_URL=http://your-backend-api:80
-NEXT_PUBLIC_REQUESTOR_URL=http://your-requestor-api:80
+NEXT_PUBLIC_API_URL=http://13.221.91.36:80
+NEXT_PUBLIC_REQUESTOR_URL=http://13.221.91.36:80
 ```
+
+**Current Configuration:**
+- Backend EC2 instance: `http://13.221.91.36:80`
+- Both services point to the same backend container
 
 **Important Notes:**
 - Values are embedded at **build time**, not runtime
-- Must rebuild application when changing environment variables
+- Must rebuild application (`npm run build`) when changing environment variables
 - Never commit `.env.local` to version control
 - Use different `.env` files for different environments
+- The backend URL should match your EC2 instance's public IP or domain
 
 ### Next.js Configuration
 
